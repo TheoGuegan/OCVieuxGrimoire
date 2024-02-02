@@ -101,3 +101,48 @@ exports.getBestRatings = (req, res, next) => {
     })
     .catch((error) => res.status(500).json({ error }));
 };
+
+exports.rateBook = async (req, res, next) => {
+  const bookId = req.params.id;
+  const userId = req.auth.userId;
+  const { rating } = req.body;
+
+  try {
+    const existingRating = await Book.findOne({
+      _id: bookId,
+      "ratings.userId": userId,
+    });
+
+    if (existingRating) {
+      return res.status(400).json({ message: "Vous avez déjà noté ce livre." });
+    }
+
+    const updatedBook = await Book.findByIdAndUpdate(
+      bookId,
+      {
+        $push: {
+          ratings: { userId: userId, grade: rating },
+        },
+      },
+      { new: true }
+    );
+
+    if (!updatedBook) {
+      return res.status(404).json({ message: "Livre non trouvé" });
+    }
+
+    const totalRatings = updatedBook.ratings.length;
+    const totalGrades = updatedBook.ratings.reduce(
+      (acc, curr) => acc + curr.grade,
+      0
+    );
+    updatedBook.averageRating =
+      totalRatings > 0 ? (totalGrades / totalRatings).toFixed(1) : 0;
+
+    await updatedBook.save();
+
+    res.status(200).json(updatedBook);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
