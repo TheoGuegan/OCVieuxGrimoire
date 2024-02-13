@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require("express");
 const mongoose = require("mongoose");
 const path = require("path");
@@ -5,10 +7,10 @@ const path = require("path");
 const bookRoutes = require("./routes/book.js");
 const userRoutes = require("./routes/user.js");
 
+const dbUrl = `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}${process.env.DB_HOST}`;
+
 mongoose
-  .connect(
-    "mongodb://theoguegan:Motdepasse@ac-30jf0oh-shard-00-00.oexvayz.mongodb.net:27017,ac-30jf0oh-shard-00-01.oexvayz.mongodb.net:27017,ac-30jf0oh-shard-00-02.oexvayz.mongodb.net:27017/?ssl=true&replicaSet=atlas-1m7c98-shard-0&authSource=admin&retryWrites=true&w=majority"
-  )
+  .connect(dbUrl)
   .then(() => console.log("Connexion à MongoDB réussie !!"))
   .catch((error) => console.error("Connexion à MongoDB échouée !", error));
 
